@@ -11,7 +11,6 @@ export interface Job extends RowDataPacket {
   created_at: Date;
 }
 
-// --- Functional Model ---
 
 export async function getJobs(filters?: { category?: string; location?: string }) {
   let sql = "SELECT * FROM jobs";
