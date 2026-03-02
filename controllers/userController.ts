@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 
 const SECRET_KEY = process.env.JWT_SECRET || "supersecret";
 
-export async function registerUser(data: any) {
+export async function registerUser(data: { name: string; email: string; password: string; role?: "user" | "admin" }) {
   const existingUser = await getUserByEmail(data.email);
   if (existingUser) {
     throw new Error("User already exists");
@@ -13,7 +13,7 @@ export async function registerUser(data: any) {
   return newUser;
 }
 
-export async function loginUser(data: any) {
+export async function loginUser(data: { email: string; password: string }) {
   const user = await getUserByEmail(data.email);
   if (!user) {
     throw new Error("Invalid credentials");
@@ -38,7 +38,8 @@ export async function getUserProfile(id: number) {
   if (!user) {
     throw new Error("User not found");
   }
-  const { password_hash, ...profile } = user;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { password_hash: _, ...profile } = user;
   return profile;
 }
 

@@ -1,10 +1,10 @@
 import { getJobs, getJobById, createJob, deleteJob } from "../models/job";
 
-export async function getAllJobs(filters: any) {
+export async function getAllJobs(filters: { category?: string; location?: string; limit?: number; cursor?: number }) {
   try {
     const jobs = await getJobs(filters);
     return jobs;
-  } catch (error) {
+  } catch {
     throw new Error("Failed to fetch jobs");
   }
 }
@@ -17,7 +17,13 @@ export async function getSingleJob(id: number) {
   return job;
 }
 
-export async function addJob(data: any) {
+export async function addJob(data: {
+  title: string;
+  company: string;
+  location: string;
+  category: string;
+  description: string;
+}) {
   if (!data.title || !data.company || !data.category) {
     throw new Error("Missing required job fields");
   }

@@ -1,6 +1,12 @@
 import { createApplication, getApplicationsByJob, getApplicationById, deleteApplication } from "../models/application";
 
-export async function submitApplication(data: any) {
+export async function submitApplication(data: {
+  job_id: number;
+  name: string;
+  email: string;
+  resume_link: string;
+  cover_note?: string;
+}) {
   if (!data.job_id || !data.name || !data.email || !data.resume_link) {
     throw new Error("Missing required application fields");
   }

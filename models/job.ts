@@ -12,10 +12,10 @@ export interface Job extends RowDataPacket {
 }
 
 
-export async function getJobs(filters?: { category?: string; location?: string }) {
+export async function getJobs(filters?: { category?: string; location?: string; limit?: number; cursor?: number }) {
   let sql = "SELECT * FROM jobs";
   const conditions: string[] = [];
-  const params: (string | undefined)[] = []; // <--- typed instead of any
+  const params: (string | number)[] = [];
 
   if (filters?.category) {
     conditions.push("category = ?");
@@ -25,11 +25,23 @@ export async function getJobs(filters?: { category?: string; location?: string }
     conditions.push("location = ?");
     params.push(filters.location);
   }
+  if (filters?.cursor) {
+    conditions.push("id < ?");
+    params.push(filters.cursor);
+  }
 
   if (conditions.length) sql += " WHERE " + conditions.join(" AND ");
-  sql += " ORDER BY created_at DESC";
+  
+  // Professional cursor sorting: Latest first (descending ID)
+  sql += " ORDER BY id DESC";
+
+  if (filters?.limit) {
+    sql += " LIMIT ?";
+    params.push(filters.limit);
+  }
 
   const [rows] = await pool.query<Job[]>(sql, params);
+  
   return rows;
 }
 
