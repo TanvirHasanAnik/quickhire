@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { submitApplication } from "@/controllers/applicationController";
+import { verifyToken } from "@/utility/token/auth";
 
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    verifyToken(req);
     const { id } = await params;
     const data = await req.json();
     
@@ -16,6 +18,7 @@ export async function POST(
     return NextResponse.json(newApplication, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "An unknown error occurred";
-    return NextResponse.json({ error: message }, { status: 400 });
+    const status = message.includes("authorization") || message.includes("token") ? 401 : 400;
+    return NextResponse.json({ error: message }, { status });
   }
 }

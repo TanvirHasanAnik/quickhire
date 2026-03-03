@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAllJobs, addJob } from "@/controllers/jobController";
+import { verifyAdmin } from "@/utility/token/auth";
 
 export async function GET(req: Request) {
   try {
@@ -32,12 +33,13 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    verifyAdmin(req);
     const data = await req.json();
-    // In a real app, verify admin role from JWT here
     const newJob = await addJob(data);
     return NextResponse.json(newJob, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "An unknown error occurred";
-    return NextResponse.json({ error: message }, { status: 400 });
+    const status = message.includes("Access denied") || message.includes("authorization") || message.includes("token") ? 401 : 400;
+    return NextResponse.json({ error: message }, { status });
   }
 }

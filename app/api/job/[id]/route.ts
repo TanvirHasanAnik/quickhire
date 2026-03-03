@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSingleJob, removeJob } from "@/controllers/jobController";
+import { verifyAdmin } from "@/utility/token/auth";
 
 export async function GET(
   req: Request,
@@ -21,12 +22,13 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    verifyAdmin(req);
     const { id } = await params;
-    // In a real app, verify admin role from JWT here
     const result = await removeJob(Number(id));
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "An unknown error occurred";
-    return NextResponse.json({ error: message }, { status: 500 });
+    const status = message.includes("Access denied") || message.includes("authorization") || message.includes("token") ? 401 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 }
