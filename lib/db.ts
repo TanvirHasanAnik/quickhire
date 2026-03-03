@@ -1,4 +1,4 @@
-import mysql from "mysql2/promise";
+import mysql, { RowDataPacket } from "mysql2/promise";
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST || "127.0.0.1",
@@ -17,16 +17,43 @@ async function initializeDatabase() {
   console.log("Initializing database tables...");
   
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS categories (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(100) NOT NULL UNIQUE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS jobs (
       id INT AUTO_INCREMENT PRIMARY KEY,
       title VARCHAR(255) NOT NULL,
       company VARCHAR(255) NOT NULL,
       location VARCHAR(255) NOT NULL,
-      category VARCHAR(100) NOT NULL,
+      category_id INT NOT NULL,
       description TEXT NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (category_id) REFERENCES categories(id)
     );
   `);
+
+  // Seed categories
+  const [existingCategories] = await pool.query<RowDataPacket[]>("SELECT COUNT(*) as count FROM categories");
+  if ((existingCategories[0] as any).count === 0) {
+    const categories = [
+      "Design",
+      "Sales",
+      "Marketing",
+      "Finance",
+      "Technology",
+      "Engineering",
+      "Business",
+      "Human Resource"
+    ];
+    const values = categories.map(cat => [cat]);
+    await pool.query("INSERT INTO categories (name) VALUES ?", [values]);
+    console.log("Categories seeded");
+  }
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
@@ -65,5 +92,5 @@ export async function getDb() {
   return pool;
 }
 
-// Export pool for backward compatibility, but getDb() is preferred to ensure initialization
 export { pool };
+

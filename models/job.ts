@@ -6,35 +6,40 @@ export interface Job extends RowDataPacket {
   title: string;
   company: string;
   location: string;
-  category: string;
+  category_id: number;
+  category_name?: string;
   description: string;
   created_at: Date;
 }
 
 
-export async function getJobs(filters?: { category?: string; location?: string; limit?: number; cursor?: number }) {
+export async function getJobs(filters?: { category_id?: number; location?: string; limit?: number; cursor?: number }) {
   const db = await getDb();
-  let sql = "SELECT * FROM jobs";
+  let sql = `
+    SELECT j.*, c.name as category_name 
+    FROM jobs j 
+    LEFT JOIN categories c ON j.category_id = c.id
+  `;
   const conditions: string[] = [];
   const params: (string | number)[] = [];
 
-  if (filters?.category) {
-    conditions.push("category = ?");
-    params.push(filters.category);
+  if (filters?.category_id) {
+    conditions.push("j.category_id = ?");
+    params.push(filters.category_id);
   }
   if (filters?.location) {
-    conditions.push("location = ?");
+    conditions.push("j.location = ?");
     params.push(filters.location);
   }
   if (filters?.cursor) {
-    conditions.push("id < ?");
+    conditions.push("j.id < ?");
     params.push(filters.cursor);
   }
 
   if (conditions.length) sql += " WHERE " + conditions.join(" AND ");
   
   // Professional cursor sorting: Latest first (descending ID)
-  sql += " ORDER BY id DESC";
+  sql += " ORDER BY j.id DESC";
 
   if (filters?.limit) {
     sql += " LIMIT ?";
@@ -48,7 +53,12 @@ export async function getJobs(filters?: { category?: string; location?: string; 
 
 export async function getJobById(id: number) {
   const db = await getDb();
-  const [rows] = await db.query<Job[]>("SELECT * FROM jobs WHERE id = ?", [id]);
+  const [rows] = await db.query<Job[]>(`
+    SELECT j.*, c.name as category_name 
+    FROM jobs j 
+    LEFT JOIN categories c ON j.category_id = c.id 
+    WHERE j.id = ?
+  `, [id]);
   return rows[0] || null;
 }
 
@@ -56,15 +66,15 @@ export async function createJob(data: {
   title: string;
   company: string;
   location: string;
-  category: string;
+  category_id: number;
   description: string;
 }) {
   const db = await getDb();
-  const { title, company, location, category, description } = data;
+  const { title, company, location, category_id, description } = data;
 
   const [result] = await db.query<ResultSetHeader>(
-    "INSERT INTO jobs (title, company, location, category, description) VALUES (?, ?, ?, ?, ?)",
-    [title, company, location, category, description]
+    "INSERT INTO jobs (title, company, location, category_id, description) VALUES (?, ?, ?, ?, ?)",
+    [title, company, location, category_id, description]
   );
 
   return { id: result.insertId, ...data };

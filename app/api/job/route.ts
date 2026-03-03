@@ -5,13 +5,13 @@ import { verifyAdmin } from "@/utility/token/auth";
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const category = searchParams.get("category") || undefined;
+    const category_id = searchParams.get("category_id") ? parseInt(searchParams.get("category_id")!) : undefined;
     const location = searchParams.get("location") || undefined;
     const limit = parseInt(searchParams.get("limit") || "10");
     const cursor = searchParams.get("cursor") ? parseInt(searchParams.get("cursor")!) : undefined;
 
     // Fetch limit + 1 to check if there is a next page
-    const jobs = await getAllJobs({ category, location, limit: limit + 1, cursor });
+    const jobs = await getAllJobs({ category_id, location, limit: limit + 1, cursor });
 
     const hasNextPage = jobs.length > limit;
     const data = hasNextPage ? jobs.slice(0, limit) : jobs;

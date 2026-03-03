@@ -1,6 +1,6 @@
 import { getJobs, getJobById, createJob, deleteJob } from "../models/job";
 
-export async function getAllJobs(filters: { category?: string; location?: string; limit?: number; cursor?: number }) {
+export async function getAllJobs(filters: { category_id?: number; location?: string; limit?: number; cursor?: number }) {
   try {
     const jobs = await getJobs(filters);
     return jobs;
@@ -21,10 +21,10 @@ export async function addJob(data: {
   title: string;
   company: string;
   location: string;
-  category: string;
+  category_id: number;
   description: string;
 }) {
-  if (!data.title || !data.company || !data.category) {
+  if (!data.title || !data.company || !data.category_id) {
     throw new Error("Missing required job fields");
   }
   const job = await createJob(data);
