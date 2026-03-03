@@ -1,4 +1,4 @@
-import { pool } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import bcrypt from "bcrypt";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 
@@ -17,9 +17,10 @@ export async function createUser(data: {
   password: string;
   role?: "user" | "admin";
 }) {
+  const db = await getDb();
   const password_hash = await bcrypt.hash(data.password, 10);
 
-  const [result] = await pool.query<ResultSetHeader>(
+  const [result] = await db.query<ResultSetHeader>(
     "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)",
     [data.name, data.email, password_hash, data.role || "user"]
   );
@@ -28,7 +29,8 @@ export async function createUser(data: {
 }
 
 export async function getUserByEmail(email: string) {
-  const [rows] = await pool.query<User[]>(
+  const db = await getDb();
+  const [rows] = await db.query<User[]>(
     "SELECT * FROM users WHERE email = ?",
     [email]
   );
@@ -36,7 +38,8 @@ export async function getUserByEmail(email: string) {
 }
 
 export async function getUserById(id: number) {
-  const [rows] = await pool.query<User[]>(
+  const db = await getDb();
+  const [rows] = await db.query<User[]>(
     "SELECT * FROM users WHERE id = ?",
     [id]
   );
@@ -48,5 +51,6 @@ export async function checkPassword(user: User, password: string) {
 }
 
 export async function deleteUser(id: number) {
-  await pool.query("DELETE FROM users WHERE id = ?", [id]);
+  const db = await getDb();
+  await db.query("DELETE FROM users WHERE id = ?", [id]);
 }

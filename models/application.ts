@@ -1,4 +1,4 @@
-import { pool } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import type { RowDataPacket, ResultSetHeader } from "mysql2";
 
 export interface Application extends RowDataPacket {
@@ -18,9 +18,10 @@ export async function createApplication(data: {
   resume_link: string;
   cover_note?: string;
 }) {
+  const db = await getDb();
   const { job_id, name, email, resume_link, cover_note } = data;
 
-  const [result] = await pool.query<ResultSetHeader>(
+  const [result] = await db.query<ResultSetHeader>(
     "INSERT INTO applications (job_id, name, email, resume_link, cover_note) VALUES (?, ?, ?, ?, ?)",
     [job_id, name, email, resume_link, cover_note || null]
   );
@@ -29,7 +30,8 @@ export async function createApplication(data: {
 }
 
 export async function getApplicationsByJob(job_id: number) {
-  const [rows] = await pool.query<Application[]>(
+  const db = await getDb();
+  const [rows] = await db.query<Application[]>(
     "SELECT * FROM applications WHERE job_id = ? ORDER BY created_at DESC",
     [job_id]
   );
@@ -37,7 +39,8 @@ export async function getApplicationsByJob(job_id: number) {
 }
 
 export async function getApplicationById(id: number) {
-  const [rows] = await pool.query<Application[]>(
+  const db = await getDb();
+  const [rows] = await db.query<Application[]>(
     "SELECT * FROM applications WHERE id = ?",
     [id]
   );
@@ -45,5 +48,6 @@ export async function getApplicationById(id: number) {
 }
 
 export async function deleteApplication(id: number) {
-  await pool.query("DELETE FROM applications WHERE id = ?", [id]);
+  const db = await getDb();
+  await db.query("DELETE FROM applications WHERE id = ?", [id]);
 }

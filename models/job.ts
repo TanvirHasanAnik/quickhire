@@ -1,4 +1,4 @@
-import { pool } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import type { RowDataPacket, ResultSetHeader } from "mysql2";
 
 export interface Job extends RowDataPacket {
@@ -13,6 +13,7 @@ export interface Job extends RowDataPacket {
 
 
 export async function getJobs(filters?: { category?: string; location?: string; limit?: number; cursor?: number }) {
+  const db = await getDb();
   let sql = "SELECT * FROM jobs";
   const conditions: string[] = [];
   const params: (string | number)[] = [];
@@ -40,13 +41,14 @@ export async function getJobs(filters?: { category?: string; location?: string; 
     params.push(filters.limit);
   }
 
-  const [rows] = await pool.query<Job[]>(sql, params);
+  const [rows] = await db.query<Job[]>(sql, params);
   
   return rows;
 }
 
 export async function getJobById(id: number) {
-  const [rows] = await pool.query<Job[]>("SELECT * FROM jobs WHERE id = ?", [id]);
+  const db = await getDb();
+  const [rows] = await db.query<Job[]>("SELECT * FROM jobs WHERE id = ?", [id]);
   return rows[0] || null;
 }
 
@@ -57,9 +59,10 @@ export async function createJob(data: {
   category: string;
   description: string;
 }) {
+  const db = await getDb();
   const { title, company, location, category, description } = data;
 
-  const [result] = await pool.query<ResultSetHeader>(
+  const [result] = await db.query<ResultSetHeader>(
     "INSERT INTO jobs (title, company, location, category, description) VALUES (?, ?, ?, ?, ?)",
     [title, company, location, category, description]
   );
@@ -68,5 +71,6 @@ export async function createJob(data: {
 }
 
 export async function deleteJob(id: number) {
-  await pool.query("DELETE FROM jobs WHERE id = ?", [id]);
+  const db = await getDb();
+  await db.query("DELETE FROM jobs WHERE id = ?", [id]);
 }

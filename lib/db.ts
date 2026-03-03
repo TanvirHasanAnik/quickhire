@@ -1,6 +1,6 @@
 import mysql from "mysql2/promise";
 
-export const pool = mysql.createPool({
+const pool = mysql.createPool({
   host: process.env.DB_HOST || "127.0.0.1",
   user: process.env.DB_USER || "root",
   password: process.env.DB_PASSWORD || "",
@@ -11,11 +11,11 @@ export const pool = mysql.createPool({
   queueLimit: 0,
 });
 
-let initialized = false;
+let initPromise: Promise<void> | null = null;
 
 async function initializeDatabase() {
-  if (initialized) return;
-
+  console.log("Initializing database tables...");
+  
   await pool.query(`
     CREATE TABLE IF NOT EXISTS jobs (
       id INT AUTO_INCREMENT PRIMARY KEY,
@@ -54,8 +54,16 @@ async function initializeDatabase() {
     );
   `);
 
-  initialized = true;
   console.log("Database initialized");
 }
 
-initializeDatabase().catch(console.error);
+export async function getDb() {
+  if (!initPromise) {
+    initPromise = initializeDatabase();
+  }
+  await initPromise;
+  return pool;
+}
+
+// Export pool for backward compatibility, but getDb() is preferred to ensure initialization
+export { pool };
