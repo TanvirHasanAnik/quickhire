@@ -1,6 +1,6 @@
 import { getJobs, getJobById, createJob, deleteJob } from "../models/job";
 
-export async function getAllJobs(filters: { category_id?: number; location?: string; limit?: number; cursor?: number }) {
+export async function getAllJobs(filters: { keyword?: string; category_id?: number; location?: string; limit?: number; cursor?: number }) {
   try {
     const jobs = await getJobs(filters);
     return jobs;

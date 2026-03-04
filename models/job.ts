@@ -13,7 +13,7 @@ export interface Job extends RowDataPacket {
 }
 
 
-export async function getJobs(filters?: { category_id?: number; location?: string; limit?: number; cursor?: number }) {
+export async function getJobs(filters?: { keyword?: string; category_id?: number; location?: string; limit?: number; cursor?: number }) {
   const db = await getDb();
   let sql = `
     SELECT j.*, c.name as category_name 
@@ -23,6 +23,11 @@ export async function getJobs(filters?: { category_id?: number; location?: strin
   const conditions: string[] = [];
   const params: (string | number)[] = [];
 
+  if (filters?.keyword) {
+    conditions.push("(j.title LIKE ? OR j.description LIKE ?)");
+    params.push(`%${filters.keyword}%`);
+    params.push(`%${filters.keyword}%`);
+  }
   if (filters?.category_id) {
     conditions.push("j.category_id = ?");
     params.push(filters.category_id);
@@ -38,7 +43,6 @@ export async function getJobs(filters?: { category_id?: number; location?: strin
 
   if (conditions.length) sql += " WHERE " + conditions.join(" AND ");
   
-  // Professional cursor sorting: Latest first (descending ID)
   sql += " ORDER BY j.id DESC";
 
   if (filters?.limit) {
