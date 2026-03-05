@@ -1,9 +1,8 @@
-import SignInForm from "../components/SignInForm"
+'use client'
 
 export default function SignIn(){
     return (
         <div>
-            <SignInForm/>
         </div>
     )
 }
