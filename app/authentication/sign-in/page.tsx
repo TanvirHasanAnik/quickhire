@@ -8,10 +8,23 @@ export default function LoginForm() {
     resolver: zodResolver(loginSchema)
   });
 
-  const onSubmit = (data: UserLogin) => {
-    console.log("Validated data:", data);
-    
-  };
+  const onSubmit = async (data: UserLogin) => {
+    try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
+  
+        const result = await res.json();
+  
+        console.log(result);
+      } catch (error) {
+        console.error("Signup failed", error);
+      }
+    };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>

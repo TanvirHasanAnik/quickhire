@@ -8,9 +8,22 @@ export default function RegisterForm() {
     resolver: zodResolver(userSchema)
   });
 
-  const onSubmit = (data: User) => {
-    console.log("Validated data:", data);
-    
+  const onSubmit = async (data: User) => {
+  try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await res.json();
+
+      console.log(result);
+    } catch (error) {
+      console.error("Signup failed", error);
+    }
   };
 
   return (
