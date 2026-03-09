@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
 import { getSingleJob, removeJob } from "@/controllers/jobController";
-import { verifyAdmin } from "@/utility/token/auth";
+import { verifyAdmin } from "@/utility/Auth/token";
+import { NextResponse } from "next/server";
 
 export async function GET(
   req: Request,

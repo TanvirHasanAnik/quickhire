@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
 import { submitApplication } from "@/controllers/applicationController";
-import { verifyToken } from "@/utility/token/auth";
+import { verifyToken } from "@/utility/Auth/token";
+import { NextResponse } from "next/server";
 
 export async function POST(
   req: Request,

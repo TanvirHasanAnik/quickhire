@@ -30,3 +30,12 @@ export const verifyAdmin = (req: Request): UserPayload => {
   }
   return user;
 };
+
+export function extractPayload(token: string) {
+  try {
+    const base64Payload = token.split('.')[1];
+    return JSON.parse(atob(base64Payload));
+  } catch (e) {
+    return null;
+  }
+}
